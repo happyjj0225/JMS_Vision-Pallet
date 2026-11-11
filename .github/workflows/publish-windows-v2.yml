@@ -22,8 +22,8 @@ jobs:
         shell: bash
         run: |
           asset="${ASSET_PATH##*/}"
-          gh api -H "Accept: application/vnd.github.raw+json" \
-            "repos/$GITHUB_REPOSITORY/contents/$ASSET_PATH?ref=$GITHUB_SHA" > "$asset"
+          gh api "repos/$GITHUB_REPOSITORY/contents/$ASSET_PATH?ref=$GITHUB_SHA" \
+            --jq .content | base64 --decode > "$asset"
           printf '%s  %s\n' "$ASSET_SHA256" "$asset" | sha256sum --check
           cat > release-notes.md <<'NOTES'
           카메라 없이 DobotStudio Pro 팔레타이징의 TCP 비전 응답과 Modbus 박스·패턴 선택을 시험하는 Windows용 테스터입니다.
