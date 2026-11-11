@@ -1,0 +1,37 @@
+name: Publish Windows tester v2.0.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-windows-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify and publish ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSET_PATH: downloads/PalletizingTest-Windows-v2.0.0.zip
+          ASSET_SHA256: d0b8236e95427937a0d27bfba00a8bbbfd573ddb3d36c43b5ff6bf25752fe81b
+        shell: bash
+        run: |
+          asset="${ASSET_PATH##*/}"
+          gh api -H "Accept: application/vnd.github.raw+json" \
+            "repos/$GITHUB_REPOSITORY/contents/$ASSET_PATH?ref=$GITHUB_SHA" > "$asset"
+          printf '%s  %s\n' "$ASSET_SHA256" "$asset" | sha256sum --check
+          cat > release-notes.md <<'NOTES'
+          카메라 없이 DobotStudio Pro 팔레타이징의 TCP 비전 응답과 Modbus 박스·패턴 선택을 시험하는 Windows용 테스터입니다.
+
+          ZIP을 풀고 `PalletizingTest_v2.exe`를 실행하세요. Windows 10/11의 .NET Framework를 사용하며 `사용방법.txt`가 포함되어 있습니다.
+
+          TCP·Modbus 모의 통신 검증을 통과했습니다. 실행 파일에 코드 서명은 적용되어 있지 않습니다.
+          NOTES
+          gh release create v2.0.0 "$asset" --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" --title "Palletizing Test v2.0.0 for Windows" \
+            --notes-file release-notes.md
